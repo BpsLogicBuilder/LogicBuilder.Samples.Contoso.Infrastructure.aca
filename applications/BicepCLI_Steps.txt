@@ -1,0 +1,4 @@
+$rg = "rg-test2"
+az deployment group what-if --resource-group $rg --template-file applications/contoso-apps.bicep
+az deployment group create --resource-group $rg --template-file applications/contoso-apps.bicep
+az deployment group create --resource-group $rg --template-file applications/contoso-apps-private-image.bicep
