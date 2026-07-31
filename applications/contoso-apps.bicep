@@ -2,9 +2,6 @@
 @description('The region to deploy all resources.')
 param location string = resourceGroup().location
 
-@description('Set the ACR Pull Role Definition ID')
-param acrPullRoleDefinitionID string = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
-
 @description('Number of CPU cores the container can use. Can be with a maximum of two decimals.')
 @allowed([
   '0.25'
@@ -43,15 +40,18 @@ param maxReplicas int = 3
 @description('The naming prefix for all resources.')
 param prefix string = 'contoso'
 
+@description('Specifies the docker container image to deploy.')
+param placeholderImage string = 'mcr.microsoft.com/azuredocs/aci-helloworld:latest'
+
+@description('Specifies the container port.')
+param targetPort int = 8080
+
 // Variables
 var uniqueSubString = uniqueString(resourceGroup().id)
 var acrName = '${prefix}acr${uniqueSubString}'
 var logAnalyticsWorkspaceName = '${prefix}-law-${uniqueSubString}'
 var appInsightsName = '${prefix}-insights-${uniqueSubString}'
 var containerAppEnvName = '${prefix}-cae-${uniqueSubString}'
-
-@description('Specifies the docker container image to deploy.')
-param placeholderImage string = 'mcr.microsoft.com/azuredocs/aci-helloworld:latest'
 
 resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   name: acrName
@@ -60,7 +60,7 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
     name: 'Basic'
   }
   properties: {
-    adminUserEnabled: true
+    adminUserEnabled: false
   }
 }
 
@@ -110,8 +110,9 @@ resource bslService 'Microsoft.App/containerApps@2026-01-01' = {
     configuration: {
       ingress: {
         external: false
-        targetPort: 8080
+        targetPort: targetPort
         transport: 'auto'
+        clientCertificateMode:'require'
       }
     }
     template: {
@@ -150,8 +151,9 @@ resource kendoBslService 'Microsoft.App/containerApps@2026-01-01' = {
     configuration: {
       ingress: {
         external: false
-        targetPort: 8080
+        targetPort: targetPort
         transport: 'auto'
+        clientCertificateMode:'require'
       }
     }
     template: {
@@ -190,7 +192,7 @@ resource apiService 'Microsoft.App/containerApps@2026-01-01' = {
     configuration: {
       ingress: {
         external: true
-        targetPort: 8080
+        targetPort: targetPort
         transport: 'auto'
         allowInsecure: false
         traffic: [
@@ -201,7 +203,7 @@ resource apiService 'Microsoft.App/containerApps@2026-01-01' = {
         ]
         corsPolicy: {
           allowedOrigins: [
-            'https://${prefix}-angular-${uniqueSubString}.azurewebsites.net' // Narrow this down to the specific Angular App URL in production
+            'https://${prefix}-angular-${uniqueSubString}.azurewebsites.net'
           ]
           allowedMethods: [
             'GET'
@@ -257,7 +259,7 @@ resource kendoApiService 'Microsoft.App/containerApps@2026-01-01' = {
     configuration: {
       ingress: {
         external: true
-        targetPort: 8080
+        targetPort: targetPort
         transport: 'auto'
         allowInsecure: false
         traffic: [
@@ -268,7 +270,7 @@ resource kendoApiService 'Microsoft.App/containerApps@2026-01-01' = {
         ]
         corsPolicy: {
           allowedOrigins: [
-            'https://${prefix}-angular-${uniqueSubString}.azurewebsites.net' // Narrow this down to the specific Angular App URL in production
+            'https://${prefix}-angular-${uniqueSubString}.azurewebsites.net'
           ]
           allowedMethods: [
             'GET'
@@ -324,7 +326,7 @@ resource workflowService 'Microsoft.App/containerApps@2026-01-01' = {
     configuration: {
       ingress: {
         external: true
-        targetPort: 8080
+        targetPort: targetPort
         transport: 'auto'
         allowInsecure: false
         traffic: [
@@ -335,7 +337,7 @@ resource workflowService 'Microsoft.App/containerApps@2026-01-01' = {
         ]
         corsPolicy: {
           allowedOrigins: [
-            'https://${prefix}-angular-${uniqueSubString}.azurewebsites.net' // Narrow this down to the specific Angular App URL in production
+            'https://${prefix}-angular-${uniqueSubString}.azurewebsites.net'
           ]
           allowedMethods: [
             'GET'
@@ -387,7 +389,7 @@ resource angularApp 'Microsoft.App/containerApps@2024-03-01' = {
     configuration: {
       ingress: {
         external: true
-        targetPort: 8080
+        targetPort: targetPort
         transport: 'auto'
         allowInsecure: false
         traffic: [
@@ -431,32 +433,47 @@ resource angularApp 'Microsoft.App/containerApps@2024-03-01' = {
   }
 }
 
-@description('Generate a unique GUID to use as name for the bslService role assignment')
-var bslServiceToAcrRoleAssignmentName = guid(bslService.id, acrPullRoleDefinitionID, acr.id)
-
-resource bslServiceToAcrRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: acr
-  name: bslServiceToAcrRoleAssignmentName
-  properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', acrPullRoleDefinitionID)
-    principalId: bslService.identity.principalId
-    principalType: 'ServicePrincipal'
+module bslServiceToAcrRoleAssignment './assign-acr-pull-to-container-app.bicep' = {
+  name: 'bslServiceToAcrRoleAssignment'
+  params: {
+    containerAppName: bslService.name
   }
 }
 
-@description('Generate a unique GUID to use as name for the apiService role assignment')
-var apiServiceToAcrRoleAssignmentName = guid(apiService.id, acrPullRoleDefinitionID, acr.id)
-
-resource apiServiceToAcrRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: acr
-  name: apiServiceToAcrRoleAssignmentName
-  properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', acrPullRoleDefinitionID)
-    principalId: apiService.identity.principalId
-    principalType: 'ServicePrincipal'
+module apiServiceToAcrRoleAssignment './assign-acr-pull-to-container-app.bicep' = {
+  name: 'apiServiceToAcrRoleAssignment'
+  params: {
+    containerAppName: apiService.name
   }
 }
 
+module kendoBslServiceToAcrRoleAssignment './assign-acr-pull-to-container-app.bicep' = {
+  name: 'kendoBslServiceToAcrRoleAssignment'
+  params: {
+    containerAppName: kendoBslService.name
+  }
+}
+
+module kendoApiServiceToAcrRoleAssignment './assign-acr-pull-to-container-app.bicep' = {
+  name: 'kendoApiServiceToAcrRoleAssignment'
+  params: {
+    containerAppName: kendoApiService.name
+  }
+}
+
+module workflowServiceToAcrRoleAssignment './assign-acr-pull-to-container-app.bicep' = {
+  name: 'workflowServiceToAcrRoleAssignment'
+  params: {
+    containerAppName: workflowService.name
+  }
+}
+
+module  angularAppToAcrRoleAssignment './assign-acr-pull-to-container-app.bicep' = {
+  name: 'angularAppToAcrRoleAssignment'
+  params: {
+    containerAppName: angularApp.name
+  }
+}
 
 @description('Output the login server property for later use')
 output acrLoginServer string = acr.properties.loginServer
