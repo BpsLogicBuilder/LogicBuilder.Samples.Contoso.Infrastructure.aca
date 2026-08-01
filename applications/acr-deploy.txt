@@ -1,4 +1,0 @@
-$rg = "rg-bicep"
-$acrName = "bpscontosoacruouxshlqhqmbs"
-
-az acr build --registry $acrName --image contosoapi:v1.0.0 --image contosoapi:latest .
