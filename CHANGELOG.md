@@ -1,3 +1,4 @@
+* 2026-08-02 - AB#176: YAML workflow for initial deployment.
 * 2026-08-01 - AB#176: Update README.md.
 * 2026-07-31 - AB#176: Add role assignment modules.
 * 2026-07-30 - Add project files.
