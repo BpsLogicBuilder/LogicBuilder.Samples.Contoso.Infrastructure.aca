@@ -1,0 +1,30 @@
+on: [workflow_dispatch]
+name: Deploy Initial Infrastructure
+
+jobs:
+  deploy-container-apps:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v6
+
+    - name: Login to Azure
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.ARM_DEPLOYER_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Deploy ACR
+      id: deployAcrStep
+      uses: azure/arm-deploy@v1
+      with:
+        subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
+        resourceGroupName: ${{ secrets.AZURE_RG_CONTOSO }}
+        template: ./applications/contoso-apps.bicep
+        failOnStdErr: false
