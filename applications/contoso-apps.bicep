@@ -475,5 +475,19 @@ module  angularAppToAcrRoleAssignment './assign-acr-pull-to-container-app.bicep'
   }
 }
 
+module apiServiceToKeyVaultRoleAssignment './assign-key-vault-certificate-user-role-to-container-app.bicep' = {
+  name: 'apiServiceToKeyVaultRoleAssignment'
+  params: {
+    containerAppName: apiService.name
+  }
+}
+
+module kendoApiServiceToKeyVaultRoleAssignment './assign-key-vault-certificate-user-role-to-container-app.bicep' = {
+  name: 'kendoApiServiceToKeyVaultRoleAssignment'
+  params: {
+    containerAppName: kendoApiService.name
+  }
+}
+
 @description('Output the login server property for later use')
 output acrLoginServer string = acr.properties.loginServer
