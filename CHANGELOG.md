@@ -1,4 +1,5 @@
-* 2026-08-04 - AB#206: Aassign Key Vault Certificate User role to APIs.
+* 2026-08-04 - AB#206: Spelling correction in change log.
+* 2026-08-04 - AB#206: Assign Key Vault Certificate User role to APIs.
 * 2026-08-02 - AB#176: Rename workflow steps.
 * 2026-08-02 - AB#176: YAML workflow for initial deployment.
 * 2026-08-01 - AB#176: Update README.md.
