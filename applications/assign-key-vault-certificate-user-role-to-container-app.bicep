@@ -1,4 +1,4 @@
-@description('Set the ACR Pull Role Definition ID')
+@description('Set the Key Vault Certificate User Role Definition ID')
 param keyVaultCertificateUserRoleDefinitionID string = 'db79e9a7-68ee-4b58-9aeb-b90e7c24fcba'
 
 @description('Specifies the name of the container app.')

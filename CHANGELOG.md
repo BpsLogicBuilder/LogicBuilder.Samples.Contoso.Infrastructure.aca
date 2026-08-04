@@ -1,3 +1,4 @@
+* 2026-08-04 - AB#206: Fix parameter description in role assignment bicep file.
 * 2026-08-04 - AB#206: Spelling correction in change log.
 * 2026-08-04 - AB#206: Assign Key Vault Certificate User role to APIs.
 * 2026-08-02 - AB#176: Rename workflow steps.
