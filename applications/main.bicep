@@ -587,6 +587,7 @@ module  createKeyVaultAndCertificate './create-key-vault-and-cert.bicep' = {
 }
 
 output acrLoginServer string = acr.properties.loginServer
+output acrName string = acr.name
 output appConfigurationEndPoint string = appConfiguration.properties.endpoint
 output keyVaultName string = keyVault.name
 output contosoApiCertificateThumbprint string = createKeyVaultAndCertificate.outputs.certificateThumbprint
