@@ -52,6 +52,12 @@ var acrName = '${prefix}acr${uniqueSubString}'
 var logAnalyticsWorkspaceName = '${prefix}-law-${uniqueSubString}'
 var appInsightsName = '${prefix}-insights-${uniqueSubString}'
 var containerAppEnvName = '${prefix}-cae-${uniqueSubString}'
+var appConfigurationName = '${prefix}-config-${uniqueSubString}'
+
+resource keyVault 'Microsoft.KeyVault/vaults@2026-02-01' existing = {
+  name: 'contoso-kv-${uniqueString(resourceGroup().id)}'
+  dependsOn: [createKeyVaultAndCertificate]
+}
 
 resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   name: acrName
@@ -61,6 +67,17 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   }
   properties: {
     adminUserEnabled: false
+  }
+}
+
+resource appConfiguration 'Microsoft.AppConfiguration/configurationStores@2024-05-01' = {
+  name: appConfigurationName
+  location: location
+  sku: {
+    name: 'standard'
+  }
+  identity: {
+    type: 'SystemAssigned'
   }
 }
 
@@ -129,6 +146,10 @@ resource bslService 'Microsoft.App/containerApps@2026-01-01' = {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
               value: appInsights.properties.ConnectionString
             }
+            {
+              name: 'APPLICATION_CONFIGURATION_ENDPOINT'
+              value: appConfiguration.properties.endpoint
+            }
           ]
         }
       ]
@@ -169,6 +190,10 @@ resource kendoBslService 'Microsoft.App/containerApps@2026-01-01' = {
             {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
               value: appInsights.properties.ConnectionString
+            }
+            {
+              name: 'APPLICATION_CONFIGURATION_ENDPOINT'
+              value: appConfiguration.properties.endpoint
             }
           ]
         }
@@ -238,6 +263,10 @@ resource apiService 'Microsoft.App/containerApps@2026-01-01' = {
               value: appInsights.properties.ConnectionString
             }
             {
+              name: 'APPLICATION_CONFIGURATION_ENDPOINT'
+              value: appConfiguration.properties.endpoint
+            }
+            {
               name: 'baseBslUrl'
               value: 'http://${bslService.properties.configuration.ingress.fqdn}'
             }
@@ -303,6 +332,10 @@ resource kendoApiService 'Microsoft.App/containerApps@2026-01-01' = {
             {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
               value: appInsights.properties.ConnectionString
+            }
+            {
+              name: 'APPLICATION_CONFIGURATION_ENDPOINT'
+              value: appConfiguration.properties.endpoint
             }
             {
               name: 'baseBslUrl'
@@ -371,6 +404,10 @@ resource workflowService 'Microsoft.App/containerApps@2026-01-01' = {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
               value: appInsights.properties.ConnectionString
             }
+            {
+              name: 'APPLICATION_CONFIGURATION_ENDPOINT'
+              value: appConfiguration.properties.endpoint
+            }
           ]
         }
       ]
@@ -426,6 +463,10 @@ resource angularApp 'Microsoft.App/containerApps@2024-03-01' = {
               name: 'ENVIRONMENT_NAME'
               value: 'dev'
             }
+            {
+              name: 'APPLICATION_CONFIGURATION_ENDPOINT'
+              value: appConfiguration.properties.endpoint
+            }
           ]
         }
       ]
@@ -479,15 +520,74 @@ module apiServiceToKeyVaultRoleAssignment './assign-key-vault-certificate-user-r
   name: 'apiServiceToKeyVaultRoleAssignment'
   params: {
     containerAppName: apiService.name
+    keyVaultName: keyVault.name
   }
+  dependsOn: [createKeyVaultAndCertificate]
 }
 
 module kendoApiServiceToKeyVaultRoleAssignment './assign-key-vault-certificate-user-role-to-container-app.bicep' = {
   name: 'kendoApiServiceToKeyVaultRoleAssignment'
   params: {
     containerAppName: kendoApiService.name
+    keyVaultName: keyVault.name
+  }
+  dependsOn: [createKeyVaultAndCertificate]
+}
+
+module bslServiceToAppConfigRoleAssignment './assign-app-config-data-reader-role-to-container-app.bicep' = {
+  name: 'bslServiceToAppConfigRoleAssignment'
+  params: {
+    containerAppName: bslService.name
+    appConfigName: appConfiguration.name
   }
 }
 
-@description('Output the login server property for later use')
+module apiServiceToAppConfigRoleAssignment './assign-app-config-data-reader-role-to-container-app.bicep' = {
+  name: 'apiServiceToAppConfigRoleAssignment'
+  params: {
+    containerAppName: apiService.name
+    appConfigName: appConfiguration.name
+  }
+}
+
+module kendoBslServiceToAppConfigRoleAssignment './assign-app-config-data-reader-role-to-container-app.bicep' = {
+  name: 'kendoBslServiceToAppConfigRoleAssignment'
+  params: {
+    containerAppName: kendoBslService.name
+    appConfigName: appConfiguration.name
+  }
+}
+
+module kendoApiServiceToAppConfigRoleAssignment './assign-app-config-data-reader-role-to-container-app.bicep' = {
+  name: 'kendoApiServiceToAppConfigRoleAssignment'
+  params: {
+    containerAppName: kendoApiService.name
+    appConfigName: appConfiguration.name
+  }
+}
+
+module workflowServiceToAppConfigRoleAssignment './assign-app-config-data-reader-role-to-container-app.bicep' = {
+  name: 'workflowServiceToAppConfigRoleAssignment'
+  params: {
+    containerAppName: workflowService.name
+    appConfigName: appConfiguration.name
+  }
+}
+
+module angularServiceToAppConfigRoleAssignment './assign-app-config-data-reader-role-to-container-app.bicep' = {
+  name: 'angularServiceToAppConfigRoleAssignment'
+  params: {
+    containerAppName: angularApp.name
+    appConfigName: appConfiguration.name
+  }
+}
+
+module  createKeyVaultAndCertificate './create-key-vault-and-cert.bicep' = {
+  name: 'createKeyVaultAndCertificate'
+}
+
 output acrLoginServer string = acr.properties.loginServer
+output appConfigurationEndPoint string = appConfiguration.properties.endpoint
+output keyVaultName string = keyVault.name
+output contosoApiCertificateThumbprint string = createKeyVaultAndCertificate.outputs.certificateThumbprint
+output contosoApiCertificateName string = createKeyVaultAndCertificate.outputs.certificateName

@@ -72,7 +72,7 @@ All containers initially use a public placeholder image. After deployment, you c
 ```
 	az deployment group create 
 		--resource-group <your-resource-group> 
-		--template-file applications/contoso-apps.bicep
+		--template-file applications/main.bicep
 ```
 
 ## Outputs
