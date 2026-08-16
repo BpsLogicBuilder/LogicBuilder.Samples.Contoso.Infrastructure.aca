@@ -590,5 +590,5 @@ output acrLoginServer string = acr.properties.loginServer
 output acrName string = acr.name
 output appConfigurationEndPoint string = appConfiguration.properties.endpoint
 output keyVaultName string = keyVault.name
-output contosoApiCertificateThumbprint string = createKeyVaultAndCertificate.outputs.certificateThumbprint
-output contosoApiCertificateName string = createKeyVaultAndCertificate.outputs.certificateName
+output contosoBslCertificateThumbprint string = createKeyVaultAndCertificate.outputs.certificateThumbprint
+output contosoBslCertificateName string = createKeyVaultAndCertificate.outputs.certificateName
