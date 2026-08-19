@@ -1,3 +1,4 @@
+* 2026-08-19 - AB#207: Use unprivileged image on 8080 for Angular service.
 * 2026-08-16 - AB#208: Rename API Certificate references to Bsl Certificate.
 * 2026-08-14 - AB#208: Add ACR name to deployment outputs.
 * 2026-08-14 - AB#208: Add App Configuration and Key Vault to initial deployment.

@@ -426,7 +426,7 @@ resource angularApp 'Microsoft.App/containerApps@2024-03-01' = {
     configuration: {
       ingress: {
         external: true
-        targetPort: 80
+        targetPort: targetPort
         transport: 'auto'
         allowInsecure: false
         traffic: [
