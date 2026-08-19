@@ -18,7 +18,7 @@ resource containerApp 'Microsoft.App/containerApps@2026-01-01' existing = {
   name: containerAppName
 }
 
-resource containerAppToKeyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource containerAppToAppConfigRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: appConfig
   name: containerAppToAppConfigurationRoleAssignmentName
   properties: {
