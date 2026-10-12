@@ -348,6 +348,73 @@ resource kendoApiService 'Microsoft.App/containerApps@2026-01-01' = {
   }
 }
 
+resource chatHubService 'Microsoft.App/containerApps@2026-01-01' = {
+  name: '${prefix}-chat-hub-${uniqueSubString}'
+  location: location
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    managedEnvironmentId: containerAppEnv.id
+    configuration: {
+      ingress: {
+        external: true
+        targetPort: targetPort
+        transport: 'auto'
+        allowInsecure: false
+        traffic: [
+          {
+            latestRevision: true
+            weight: 100
+          }
+        ]
+        corsPolicy: {
+          allowedOrigins: [
+            'https://${prefix}-angular-${uniqueSubString}.azurewebsites.net'
+          ]
+          allowedMethods: [
+            'GET'
+            'POST'
+            'PUT'
+            'DELETE'
+          ]
+          allowedHeaders: [
+            'Content-Type'
+            'Authorization"'
+          ]
+          exposeHeaders: [
+            '*'
+          ]
+          maxAge: 300
+          allowCredentials: false
+        }
+      }
+    }
+    template: {
+      containers: [
+        {
+          name: 'chat-hub'
+          image: placeholderImage
+          resources: {
+            cpu: json(cpuCore)
+            memory: '${memorySize}Gi'
+          }
+          env: [
+            {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              value: appInsights.properties.ConnectionString
+            }
+            {
+              name: 'APPLICATION_CONFIGURATION_ENDPOINT'
+              value: appConfiguration.properties.endpoint
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
 resource workflowService 'Microsoft.App/containerApps@2026-01-01' = {
   name: '${prefix}-workflow-${uniqueSubString}'
   location: location
@@ -456,6 +523,10 @@ resource angularApp 'Microsoft.App/containerApps@2024-03-01' = {
               value: 'https://${kendoApiService.properties.configuration.ingress.fqdn}'
             }
             {
+              name: 'CHATHUB_URL'
+              value: 'https://${chatHubService.properties.configuration.ingress.fqdn}'
+            }
+            {
               name: 'WORKFLOW_URL'
               value: 'https://${workflowService.properties.configuration.ingress.fqdn}'
             }
@@ -502,6 +573,12 @@ module kendoApiServiceToAcrRoleAssignment './assign-acr-pull-to-container-app.bi
   }
 }
 
+module chatHubServiceToAcrRoleAssignment './assign-acr-pull-to-container-app.bicep' = {
+  name: 'chatHubServiceToAcrRoleAssignment'
+  params: {
+    containerAppName: chatHubService.name
+  }
+}
 module workflowServiceToAcrRoleAssignment './assign-acr-pull-to-container-app.bicep' = {
   name: 'workflowServiceToAcrRoleAssignment'
   params: {
@@ -562,6 +639,14 @@ module kendoApiServiceToAppConfigRoleAssignment './assign-app-config-data-reader
   name: 'kendoApiServiceToAppConfigRoleAssignment'
   params: {
     containerAppName: kendoApiService.name
+    appConfigName: appConfiguration.name
+  }
+}
+
+module chatHubServiceToAppConfigRoleAssignment './assign-app-config-data-reader-role-to-container-app.bicep' = {
+  name: 'chatHubServiceToAppConfigRoleAssignment'
+  params: {
+    containerAppName: chatHubService.name
     appConfigName: appConfiguration.name
   }
 }
