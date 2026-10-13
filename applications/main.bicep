@@ -57,6 +57,7 @@ var appConfigurationName = '${prefix}-config-${uniqueSubString}'
 var foundryResourceGroupName = 'rg-foundry-iq'
 var foundrySuffix = uniqueString(subscription().subscriptionId, foundryResourceGroup.id)
 var foundryAccountResourceName = 'bps-foundry-iq-${foundrySuffix}'
+var foundryUserRoleDefinitionID string = '53ca6127-db72-4b80-b1b0-d745d6d5456d'
 
 resource foundryAccountResource 'Microsoft.CognitiveServices/accounts@2025-06-01' existing = {
   name: foundryAccountResourceName
@@ -685,9 +686,11 @@ module angularServiceToAppConfigRoleAssignment './assign-app-config-data-reader-
 
 module chatHubServiceToFoundryRoleAssignment './assign-foundry-user-access-to-container-app.bicep' = {
   name: 'chatHubServiceToFoundryRoleAssignment'
+  scope: resourceGroup(foundryResourceGroupName)
   params: {
-    containerAppName: chatHubService.name
     foundryAccountResourceName: foundryAccountResource.name
+    containerAppPrincipalId: chatHubService.identity.principalId
+    containerAppToFoundryRoleAssignmentName: guid(chatHubService.id, foundryUserRoleDefinitionID, foundryAccountResource.id)
   }
 }
 
