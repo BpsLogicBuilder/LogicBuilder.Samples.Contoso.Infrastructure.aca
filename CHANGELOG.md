@@ -1,3 +1,4 @@
+* 2026-10-13 - AB#233: Add foundry access to chat hub service.
 * 2026-10-12 - AB#233: Add chat hub service to initial deployment.
 * 2026-08-19 - AB#207: Use unprivileged image on 8080 for Angular service.
 * 2026-08-16 - AB#208: Rename API Certificate references to Bsl Certificate.
