@@ -54,6 +54,20 @@ var appInsightsName = '${prefix}-insights-${uniqueSubString}'
 var containerAppEnvName = '${prefix}-cae-${uniqueSubString}'
 var appConfigurationName = '${prefix}-config-${uniqueSubString}'
 
+var foundryResourceGroupName = 'rg-foundry-iq'
+var foundrySuffix = uniqueString(subscription().subscriptionId, foundryResourceGroup.id)
+var foundryAccountResourceName = 'bps-foundry-iq-${foundrySuffix}'
+
+resource foundryAccountResource 'Microsoft.CognitiveServices/accounts@2025-06-01' existing = {
+  name: foundryAccountResourceName
+  scope: resourceGroup(foundryResourceGroupName)
+}
+
+resource foundryResourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' existing = {
+  name: foundryResourceGroupName
+  scope: subscription()
+}
+
 resource keyVault 'Microsoft.KeyVault/vaults@2026-02-01' existing = {
   name: 'contoso-kv-${uniqueString(resourceGroup().id)}'
   dependsOn: [createKeyVaultAndCertificate]
@@ -381,12 +395,14 @@ resource chatHubService 'Microsoft.App/containerApps@2026-01-01' = {
           allowedHeaders: [
             'Content-Type'
             'Authorization"'
+            'X-Requested-With'
+            'X-Signalr-User-Agent'
           ]
           exposeHeaders: [
             '*'
           ]
           maxAge: 300
-          allowCredentials: false
+          allowCredentials: true
         }
       }
     }
@@ -664,6 +680,14 @@ module angularServiceToAppConfigRoleAssignment './assign-app-config-data-reader-
   params: {
     containerAppName: angularApp.name
     appConfigName: appConfiguration.name
+  }
+}
+
+module chatHubServiceToFoundryRoleAssignment './assign-foundry-user-access-to-container-app.bicep' = {
+  name: 'chatHubServiceToFoundryRoleAssignment'
+  params: {
+    containerAppName: chatHubService.name
+    foundryAccountResourceName: foundryAccountResource.name
   }
 }
 
