@@ -1,3 +1,4 @@
+* 2026-10-15 - AB#245: Make correction in the list of repositories.
 * 2026-10-15 - AB#245: Add owner and repository to GH call.
 * 2026-10-15 - AB#245: Make workflow invocation case sensitive.
 * 2026-10-15 - AB#245: Set permissions on services job.

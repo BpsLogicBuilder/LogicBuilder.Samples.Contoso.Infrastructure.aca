@@ -42,7 +42,7 @@ jobs:
         repo:
           - "LogicBuilder.Samples.Contoso.Angular"
           - "LogicBuilder.Samples.Contoso.ChatHub"
-          - "LogicBuilder.Samples.Enrollment.KendoGrid.Services"
+          - "LogicBuilder.Samples.Contoso.KendoGrid.Services"
           - "LogicBuilder.Samples.Contoso.Services"
           - "LogicBuilder.Samples.Contoso.Spa.Flow"
     steps:
@@ -56,6 +56,6 @@ jobs:
           repositories: ${{ matrix.repo }}
 
       - name: Trigger App Deployment
-        run: gh workflow run cd.yml --repo "${{ format('BpsLogicBuilder/{0}', matrix.repo) }}" --ref "master"
+        run: gh workflow run cd.yml --repo "${{ format('{0}/{1}', github.repository_owner, matrix.repo) }}" --ref "master"
         env:
           GH_TOKEN: ${{ steps.repo-access-app-token.outputs.token }}
