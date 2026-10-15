@@ -33,6 +33,8 @@ jobs:
   trigger-cd-pipelines:
     name: Deploy Services
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     needs: deploy-container-apps
     strategy:
       fail-fast: false 
