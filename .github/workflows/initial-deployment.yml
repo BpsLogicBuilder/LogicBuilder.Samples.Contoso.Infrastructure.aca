@@ -3,12 +3,11 @@ name: Deploy Initial Infrastructure
 
 jobs:
   deploy-container-apps:
+    name: Deploy Infrastructure
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
-    outputs:
-      app_token: ${{ steps.encode-token.outputs.encoded_token }}
 
     steps:
 
@@ -31,20 +30,8 @@ jobs:
         template: ./applications/main.bicep
         failOnStdErr: false
 
-    - name: Generate GitHub App Token
-      id: repo-access-app-token
-      uses: actions/create-github-app-token@v3
-      with:
-        client-id: ${{ secrets.CROSS_REPO_ACCESS_APP_CLIENT_ID }}
-        private-key: ${{ secrets.CROSS_REPO_ACCESS_APP_PRIVATE_KEY }}
-
-    - name: Encode Token for Job Output
-      id: encode-token
-      run: |
-        ENCODED=$(echo -n "${{ steps.repo-access-app-token.outputs.token }}" | base64 -w 0)
-        echo "encoded_token=$ENCODED" >> $GITHUB_OUTPUT
-
   trigger-cd-pipelines:
+    name: Deploy Services
     runs-on: ubuntu-latest
     needs: deploy-container-apps
     strategy:
@@ -57,9 +44,14 @@ jobs:
           - "BpsLogicBuilder/LogicBuilder.Samples.Contoso.Services"
           - "BpsLogicBuilder/LogicBuilder.Samples.Contoso.Spa.Flow"
     steps:
+      - name: Generate GitHub App Token
+        id: repo-access-app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.CROSS_REPO_ACCESS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CROSS_REPO_ACCESS_APP_PRIVATE_KEY }}
+
       - name: Trigger App Deployment
-        run: |
-          DECODED_TOKEN=$(echo -n "${{ needs.deploy-container-apps.outputs.app_token }}" | base64 -d)
-          echo "::add-mask::$DECODED_TOKEN"
-          export GH_TOKEN="$DECODED_TOKEN"
-          gh workflow run CD.yml --repo "${{ matrix.repo }}" --ref "master"
+        run: gh workflow run CD.yml --repo "${{ matrix.repo }}" --ref "master"
+        env:
+          GH_TOKEN: ${{ steps.repo-access-app-token.outputs.token }}
