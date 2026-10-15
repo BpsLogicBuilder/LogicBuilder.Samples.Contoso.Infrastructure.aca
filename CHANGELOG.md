@@ -1,3 +1,4 @@
+* 2026-10-15 - AB#245: Kick of service deployments after infrastructure.
 * 2026-10-13 - AB#233: Isolate role assignment scope to foundry resource group.
 * 2026-10-13 - AB#233: Add foundry access to chat hub service.
 * 2026-10-12 - AB#233: Add chat hub service to initial deployment.
