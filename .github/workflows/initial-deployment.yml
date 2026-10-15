@@ -57,15 +57,9 @@ jobs:
           - "BpsLogicBuilder/LogicBuilder.Samples.Contoso.Services"
           - "BpsLogicBuilder/LogicBuilder.Samples.Contoso.Spa.Flow"
     steps:
-      - name: Decode Token
-        id: decode_token
-        run: |
-          DECODED=$(echo -n "${{ needs.deploy-container-apps.outputs.app_token }}" | base64 -d)
-          echo "decoded_access_token=$DECODED" >> $GITHUB_OUTPUT
-
       - name: Trigger App Deployment
         run: |
           DECODED_TOKEN=$(echo -n "${{ needs.deploy-container-apps.outputs.app_token }}" | base64 -d)
+          echo "::add-mask::$DECODED_TOKEN"
+          export GH_TOKEN="$DECODED_TOKEN"
           gh workflow run CD.yml --repo "${{ matrix.repo }}" --ref "master"
-        env:
-          GH_TOKEN: ${{ steps.decode_token.outputs.decoded_access_token }}
