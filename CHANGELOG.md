@@ -1,3 +1,5 @@
+* 2026-10-15 - AB#245: Set permissions on services job.
+* 2026-10-15 - AB#245: Generate token locally.
 * 2026-10-15 - AB#245: Fix token access.
 * 2026-10-15 - AB#245: Kick of service deployments after infrastructure.
 * 2026-10-13 - AB#233: Isolate role assignment scope to foundry resource group.
