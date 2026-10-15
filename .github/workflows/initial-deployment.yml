@@ -40,11 +40,11 @@ jobs:
       fail-fast: false 
       matrix:
         repo:
-          - "BpsLogicBuilder/LogicBuilder.Samples.Contoso.Angular"
-          - "BpsLogicBuilder/LogicBuilder.Samples.Contoso.ChatHub"
-          - "BpsLogicBuilder/LogicBuilder.Samples.Enrollment.KendoGrid.Services"
-          - "BpsLogicBuilder/LogicBuilder.Samples.Contoso.Services"
-          - "BpsLogicBuilder/LogicBuilder.Samples.Contoso.Spa.Flow"
+          - "LogicBuilder.Samples.Contoso.Angular"
+          - "LogicBuilder.Samples.Contoso.ChatHub"
+          - "LogicBuilder.Samples.Enrollment.KendoGrid.Services"
+          - "LogicBuilder.Samples.Contoso.Services"
+          - "LogicBuilder.Samples.Contoso.Spa.Flow"
     steps:
       - name: Generate GitHub App Token
         id: repo-access-app-token
@@ -52,8 +52,10 @@ jobs:
         with:
           client-id: ${{ secrets.CROSS_REPO_ACCESS_APP_CLIENT_ID }}
           private-key: ${{ secrets.CROSS_REPO_ACCESS_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ matrix.repo }}
 
       - name: Trigger App Deployment
-        run: gh workflow run cd.yml --repo "${{ matrix.repo }}" --ref "master"
+        run: gh workflow run cd.yml --repo "${{ format('BpsLogicBuilder/{0}', matrix.repo) }}" --ref "master"
         env:
           GH_TOKEN: ${{ steps.repo-access-app-token.outputs.token }}
