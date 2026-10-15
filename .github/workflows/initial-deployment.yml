@@ -54,6 +54,6 @@ jobs:
           private-key: ${{ secrets.CROSS_REPO_ACCESS_APP_PRIVATE_KEY }}
 
       - name: Trigger App Deployment
-        run: gh workflow run CD.yml --repo "${{ matrix.repo }}" --ref "master"
+        run: gh workflow run cd.yml --repo "${{ matrix.repo }}" --ref "master"
         env:
           GH_TOKEN: ${{ steps.repo-access-app-token.outputs.token }}

@@ -1,3 +1,4 @@
+* 2026-10-15 - AB#245: Make workflow invocation case sensitive.
 * 2026-10-15 - AB#245: Set permissions on services job.
 * 2026-10-15 - AB#245: Generate token locally.
 * 2026-10-15 - AB#245: Fix token access.
